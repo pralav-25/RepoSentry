@@ -187,6 +187,38 @@ def parse_requirements(contents: bytes, path: str) -> list[Dependency]:
     return dependencies
 
 
+def parse_npm_package_json(contents: bytes, path: str) -> list[Dependency]:
+    try:
+        package_data = json.loads(contents.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise RepoSentryError(f"Could not parse package.json at {path}.") from error
+
+    if not isinstance(package_data, dict):
+        return []
+
+    # The app checks exact semantic versions only. Ranges, tags, workspace
+    # references, and git URLs need a lockfile resolver and are skipped.
+    exact_version = re.compile(
+        r"^v?(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+        r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
+        r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
+    )
+    dependencies: list[Dependency] = []
+    for section in ("dependencies", "devDependencies"):
+        entries = package_data.get(section)
+        if not isinstance(entries, dict):
+            continue
+        for name, version in entries.items():
+            if (
+                isinstance(name, str)
+                and name.strip()
+                and isinstance(version, str)
+                and exact_version.fullmatch(version.strip())
+            ):
+                dependencies.append(Dependency("npm", name, version.strip(), path))
+    return dependencies
+
+
 def ensure_java_compiled() -> None:
     if not shutil.which("javac") or not shutil.which("java"):
         raise RepoSentryError("Java JDK is required to read Maven dependencies. Install a JDK with javac and java.")
@@ -247,6 +279,7 @@ def read_manifest_dependencies(archive_data: bytes) -> list[Dependency]:
 
         requirements_files = []
         pom_files = []
+        package_json_files = []
         for info in members:
             if info.is_dir() or info.file_size > MAX_MANIFEST_BYTES:
                 continue
@@ -259,6 +292,8 @@ def read_manifest_dependencies(archive_data: bytes) -> list[Dependency]:
                 requirements_files.append(info)
             elif basename == "pom.xml" and len(pom_files) < MAX_MANIFESTS_PER_TYPE:
                 pom_files.append(info)
+            elif basename == "package.json" and len(package_json_files) < MAX_MANIFESTS_PER_TYPE:
+                package_json_files.append(info)
 
         dependencies: list[Dependency] = []
         for info in requirements_files:
@@ -266,6 +301,9 @@ def read_manifest_dependencies(archive_data: bytes) -> list[Dependency]:
 
         for info in pom_files:
             dependencies.extend(parse_maven_pom(archive.read(info), info.filename))
+
+        for info in package_json_files:
+            dependencies.extend(parse_npm_package_json(archive.read(info), info.filename))
 
     deduplicated: dict[tuple[str, str, str], Dependency] = {}
     for dependency in dependencies:
@@ -586,7 +624,7 @@ class RepoSentryApp:
         ).pack(anchor="w", pady=(3, 4))
         ttk.Label(
             outer,
-            text="Supports pinned requirements.txt and direct Maven pom.xml dependencies. Repository code is never run.",
+            text="Supports exact requirements.txt and package.json pins, plus direct Maven dependencies. Repository code is never run.",
             style="Sub.TLabel",
         ).pack(anchor="w", pady=(0, 14))
 
@@ -752,7 +790,7 @@ class RepoSentryApp:
         if not dependencies:
             self.status_var.set(f"Scan #{payload['scan_id']} complete.")
             self.summary_var.set(
-                "No supported pinned dependencies found. Check requirements.txt or pom.xml files."
+                "No supported pinned dependencies found. Check requirements.txt, package.json, or pom.xml files."
             )
             self.results_note_var.set("No supported dependency versions were found in this repository.")
         elif findings:

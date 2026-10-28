@@ -7,7 +7,7 @@ RepoSentry checks supported dependency files in a public GitHub repository for k
 ## Explain the stack
 
 - Tkinter is the desktop interface.
-- Python downloads the repository archive, coordinates the scan, calls the vulnerability lookup service, and reads/writes SQLite.
+- Python downloads the repository archive, reads exact Python and npm dependency pins, coordinates the scan, calls the vulnerability lookup service, and reads/writes SQLite.
 - Java reads direct, fixed-version Maven dependencies from pom.xml. It prints each dependency as a tab-separated line; Python reads those lines.
 - SQLite stores repositories, scans, dependencies, and findings.
 
@@ -15,8 +15,8 @@ RepoSentry checks supported dependency files in a public GitHub repository for k
 
 1. Paste a public GitHub repository URL.
 2. Python gets a snapshot pinned to the default branch's commit.
-3. RepoSentry reads requirements.txt and pom.xml files as data.
-4. Java extracts Maven package names and versions; Python parses pinned Python requirements.
+3. RepoSentry reads requirements.txt, package.json, and pom.xml files as data.
+4. Java extracts Maven package names and versions; Python parses pinned Python requirements and exact package.json dependencies.
 5. Python asks OSV whether each package version has a known advisory.
 6. Findings and scan history are saved to SQLite and displayed in Tkinter.
 
@@ -26,7 +26,7 @@ The app has Findings and Scan History tabs. It opens the latest saved scan autom
 
 ## Important scope
 
-This is a class-project dependency checker, not a full security audit. It supports exact Python requirements such as package==1.2.3 and direct Maven dependencies with literal versions. It does not run repository code, install packages, or detect every flaw in source code.
+This is a class-project dependency checker, not a full security audit. It supports exact Python requirements such as package==1.2.3, exact direct package.json versions, and direct Maven dependencies with literal versions. It does not resolve transitive npm packages or run repository code, install packages, or detect every flaw in source code.
 
 ## Database tables
 
@@ -47,7 +47,7 @@ Agree on the Java tab-separated output format before splitting implementation wo
 
 ## Demo
 
-On macOS, double-click RepoSentry.app. Run RepoSentry.command is available as a terminal-friendly fallback. For a fresh demo, scan https://github.com/pralav-25/reposentry-demo. It contains old Python and Maven dependency versions selected to show known OSV advisories. Counts can change as OSV data changes. This fixture is only for scanner demonstrations.
+On macOS, double-click RepoSentry.app. Run RepoSentry.command is available as a terminal-friendly fallback. For a fresh demo, scan https://github.com/pralav-25/reposentry-demo. To show the npm scanner, scan https://github.com/pralav-25/interleave. Advisory counts can change as OSV data changes. The demo fixture's old dependency versions are only for scanner demonstrations.
 
 The app requires internet access for GitHub and OSV lookups, and a Java JDK for Maven scans. Use Python with Tk 8.6 or newer.
 

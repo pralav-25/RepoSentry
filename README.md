@@ -18,7 +18,7 @@ If HTTPS calls fail with a certificate-verification error after installing Pytho
 
 1. Fetches a public GitHub repository snapshot pinned to a commit.
 2. Reads supported dependency files as data.
-3. Uses Java to read direct Maven dependencies and Python to read pinned Python requirements.
+3. Uses Java to read direct Maven dependencies and Python to read exact Python and npm dependency pins.
 4. Checks package versions against OSV's public vulnerability service.
 5. Saves scan history and findings in a local SQLite database.
 6. Loads the latest saved scan at startup, shows results with search and severity filters, opens advisories on double-click, and exports findings to CSV.
@@ -26,13 +26,16 @@ If HTTPS calls fail with a certificate-verification error after installing Pytho
 ## Supported input
 
 - Python requirements.txt entries with exact versions, for example package==1.2.3.
+- Direct package.json entries in dependencies and devDependencies with exact semantic versions such as 1.2.3. Ranges and pnpm-lock.yaml transitive versions are not resolved.
 - Direct Maven pom.xml dependencies with literal versions.
 
-This first version skips unpinned Python entries, version ranges, Maven property versions, private repositories, and dependency formats outside those files. A scan is limited to 25 MB and 50 parsed dependency versions to keep the class demo manageable.
+This first version skips unpinned Python entries, npm version ranges, Maven property versions, private repositories, and dependency formats outside those files. It checks declared direct npm dependencies, not transitive pnpm lockfile entries. A scan is limited to 25 MB and 50 parsed dependency versions to keep the class demo manageable.
 
 ## Demo repository
 
 Paste <https://github.com/pralav-25/reposentry-demo> into the app to try a scan. It contains intentionally outdated Python and Maven dependency versions chosen to return known OSV advisories. Keep these fixture versions for scanner demonstrations only; do not copy them into a real project.
+
+RepoSentry can also scan the exact direct npm pins in <https://github.com/pralav-25/interleave>'s `package.json`.
 
 ## Project structure
 
