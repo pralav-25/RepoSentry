@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+build/
+reposentry.db
+.DS_Store
+
