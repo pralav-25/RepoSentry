@@ -12,6 +12,8 @@ You can also run:
 
 Requirements: Python 3 with Tkinter 8.6 or newer on macOS, Java JDK (javac and java), and an internet connection. The Xcode-bundled Python on this laptop uses Tk 8.5, which renders Tk windows blank here; use the included launcher.
 
+If HTTPS calls fail with a certificate-verification error after installing Python from python.org, run the matching `Install Certificates.command` from `/Applications/Python 3.13/` once.
+
 ## What it does
 
 1. Fetches a public GitHub repository snapshot pinned to a commit.
