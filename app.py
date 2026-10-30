@@ -102,11 +102,17 @@ def initialize_database() -> None:
 
 
 def validate_github_url(url: str) -> tuple[str, str, str]:
-    parsed = urlparse(url.strip())
-    if parsed.scheme != "https" or parsed.hostname not in {"github.com", "www.github.com"}:
+    try:
+        parsed = urlparse(url.strip())
+        hostname = parsed.hostname
+        port = parsed.port
+    except ValueError as error:
+        raise RepoSentryError("Enter a valid GitHub repository URL.") from error
+
+    if parsed.scheme != "https" or hostname not in {"github.com", "www.github.com"}:
         raise RepoSentryError("Enter a full public GitHub URL, such as https://github.com/owner/repository.")
 
-    if parsed.username or parsed.password or parsed.port or parsed.query or parsed.fragment:
+    if parsed.username or parsed.password or port is not None or parsed.query or parsed.fragment:
         raise RepoSentryError("Please enter only the GitHub repository URL.")
 
     parts = [part for part in parsed.path.strip("/").split("/") if part]
