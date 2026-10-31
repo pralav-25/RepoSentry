@@ -4,3 +4,8 @@ build/
 reposentry.db
 .DS_Store
 
+# Keep coursework reports and their images local.
+/RepoSentry Project Report.docx
+/RepoSentry Project Report.pdf
+/report_assets/
+
