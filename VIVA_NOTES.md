@@ -11,6 +11,8 @@ RepoSentry checks supported dependency files in a public GitHub repository for k
 - Java reads direct, fixed-version Maven dependencies from pom.xml. It prints each dependency as a tab-separated line; Python reads those lines.
 - SQLite stores repositories, scans, dependencies, and findings.
 
+The desktop interface stays in `app.py`. The `reposentry` package separates GitHub access, manifest parsing, advisory lookup, SQLite storage, and scan orchestration. This lets the offline tests exercise the scan logic without opening a Tkinter window.
+
 ## Explain the scan
 
 1. Paste a public GitHub repository URL.

@@ -39,13 +39,30 @@ RepoSentry can also scan the exact direct npm pins in <https://github.com/pralav
 
 ## Project structure
 
-- app.py: Tkinter interface, GitHub download, OSV lookup, SQLite operations, filtering, and CSV export.
+- app.py: Tkinter interface, filtering, CSV export, and desktop entry point.
+- reposentry/: headless scan services, usable and testable without starting Tkinter.
+  - domain.py and config.py: dependency records, displayable errors, paths, and scan limits.
+  - github.py: repository URL validation and bounded GitHub downloads.
+  - manifests.py: supported Python, npm, and Maven manifest readers.
+  - advisories.py: OSV lookup and advisory display fields.
+  - storage.py: SQLite transactions and scan history.
+  - scanner.py: coordinates a commit-pinned scan and saves completed results.
 - assets/: RepoSentry shield-and-check logo in SVG, PNG, and macOS app icon formats.
 - RepoSentry.app/: Finder-launchable macOS app bundle with the RepoSentry icon; it uses the neighboring source files.
 - java/RepoScanner.java: secure, read-only Maven XML dependency parser.
 - build/: Java class output, compiled automatically when a Maven file is scanned.
 - reposentry.db: local database, created at first launch.
 - VIVA_NOTES.md: short project explanation and demo scope.
+
+## Tests
+
+Run the offline test suite from the repository root:
+
+    python3 -m unittest discover -s tests -v
+
+Tests use local archive fixtures, mocked network responses, and temporary SQLite databases. They do not change saved desktop scan history or contact GitHub/OSV. The Maven parser test needs `java` and `javac`; it is skipped when the JDK is unavailable. The core services and their tests do not import Tkinter.
+
+GitHub Actions runs the same suite on pushes and pull requests with Python 3.13 and Temurin Java 17, including the Maven parser test.
 
 ## Scope and safety
 
