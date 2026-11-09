@@ -2,7 +2,8 @@
 
 import unittest
 
-from app import RepoSentryError, validate_github_url
+from reposentry.domain import RepoSentryError
+from reposentry.github import validate_github_url
 
 
 class GitHubURLTests(unittest.TestCase):
