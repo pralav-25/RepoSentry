@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import math
 import queue
 import re
 import shutil
@@ -370,6 +371,8 @@ def severity_label(vulnerability: dict) -> str:
         try:
             score = float(raw_score)
         except (ValueError, TypeError):
+            continue
+        if not math.isfinite(score) or not 0 <= score <= 10:
             continue
         if score >= 9:
             return "CRITICAL"
