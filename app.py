@@ -536,6 +536,14 @@ def get_scan_findings(scan_id: int) -> list[sqlite3.Row]:
         ).fetchall()
 
 
+def spreadsheet_cell(value) -> str:
+    """Keep untrusted advisory and repository text literal in spreadsheet exports."""
+    text = "" if value is None else str(value)
+    if text.lstrip().startswith(("=", "+", "-", "@")) or text.startswith(("\t", "\r", "\n")):
+        return "'" + text
+    return text
+
+
 class RepoSentryApp:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
@@ -891,7 +899,10 @@ class RepoSentryApp:
             with open(destination, "w", newline="", encoding="utf-8") as report:
                 writer = csv.DictWriter(report, fieldnames=fields, extrasaction="ignore")
                 writer.writeheader()
-                writer.writerows(self.current_findings)
+                writer.writerows(
+                    {field: spreadsheet_cell(finding.get(field, "")) for field in fields}
+                    for finding in self.current_findings
+                )
         except OSError as error:
             messagebox.showerror("Export failed", str(error), parent=self.root)
             return
